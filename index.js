@@ -41,6 +41,19 @@ const createURL = (original_url, done) => {
   });
 };
 
+const getURL = (short_url, done) => {
+  // Get document by short_url
+  URL.findOne({ short_url: short_url })
+    .select({ original_url: 1 })
+    .then((doc) => {
+      // Return original URL
+      done(null, doc.original_url);
+    })
+    .catch((err) => {
+      done(err, null);
+    });
+};
+
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
@@ -82,6 +95,20 @@ app.post("/api/shorturl", function (req, res) {
         }
       });
     }
+  });
+});
+
+app.get("/api/shorturl/:short_url", function (req, res) {
+  let short_url = req.params.short_url;
+
+  getURL(short_url, function (err, data) {
+    if (err) {
+      return res.json({ err: err });
+    }
+
+    // Redirect to original URL
+    let original_url = data;
+    res.redirect(original_url);
   });
 });
 
