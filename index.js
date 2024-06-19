@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const dns = require("node:dns");
 const app = express();
 const mongoose = require("mongoose");
 
@@ -56,12 +57,30 @@ app.post("/api/shorturl", function (req, res) {
   // Get URL submitted in req
   let original_url = req.body.url;
 
-  // Create document in db, send response
-  createURL(original_url, function (err, data) {
-    if (err) {
-      res.json({ err: err });
+  // Check if provided URL begins with https:// or http://
+  let httpRegex = /^https?:\/\//;
+  if (!httpRegex.test(original_url)) {
+    // If not valid, return invalid URL response
+    return res.json({ err: "Invalid URL" });
+  }
+
+  // Remove https:// or http:// from beginning of URL
+  urlHttpRemoved = original_url.replace(httpRegex, "");
+  // Lookup URL to see if it is valid
+  dns.lookup(urlHttpRemoved, (err, address, family) => {
+    let isURLValid = err == null;
+
+    if (!isURLValid) {
+      res.json({ error: "Invalid URL" });
     } else {
-      res.json(data);
+      // Create document in db, send response
+      createURL(original_url, function (err, data) {
+        if (err) {
+          res.json({ err: err });
+        } else {
+          res.json(data);
+        }
+      });
     }
   });
 });
