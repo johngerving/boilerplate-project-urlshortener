@@ -56,7 +56,14 @@ app.post("/api/shorturl", function (req, res) {
   // Get URL submitted in req
   let original_url = req.body.url;
 
-  createURL(original_url, function (err, data) {});
+  // Create document in db, send response
+  createURL(original_url, function (err, data) {
+    if (err) {
+      res.json({ err: err });
+    } else {
+      res.json(data);
+    }
+  });
 });
 
 app.listen(port, function () {
