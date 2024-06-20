@@ -77,10 +77,11 @@ app.post("/api/shorturl", function (req, res) {
     return res.json({ err: "Invalid URL" });
   }
 
-  // Remove https:// or http:// from beginning of URL
-  urlHttpRemoved = original_url.replace(httpRegex, "");
+  // Retrieve only the domain name from the URL
+  let justDomainRegex = /^https?:\/\/([^\/]+)\/?.*/;
+  let justDomain = original_url.match(justDomainRegex)[1];
   // Lookup URL to see if it is valid
-  dns.lookup(urlHttpRemoved, (err, address, family) => {
+  dns.lookup(justDomain, (err, address, family) => {
     let isURLValid = err == null;
 
     if (!isURLValid) {
